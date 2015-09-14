@@ -11,7 +11,7 @@ module HTTY::CLI::Commands; end
 # Encapsulates the _path-set_ command.
 class HTTY::CLI::Commands::PathSet < HTTY::CLI::Command
 
-  include HTTY::CLI::UrlEscaping
+  extend HTTY::CLI::UrlEscaping
 
   # Returns the name of a category under which help for the _path-set_ command
   # should appear.
@@ -44,15 +44,19 @@ class HTTY::CLI::Commands::PathSet < HTTY::CLI::Command
     [HTTY::CLI::Commands::Address]
   end
 
+  def self.sanitize_arguments(arguments)
+    path = arguments[0]
+    path_components = path.split('/')
+    escaped_components = escape_or_warn_of_escape_sequences(path_components)
+    escaped_path = escaped_components.join('/')
+    [escaped_path]
+  end
+
   # Performs the _path-set_ command.
   def perform
     add_request_if_new do |request|
       self.class.notify_if_cookies_cleared request do
-        path = arguments[0]
-        path_components = path.split('/')
-        escaped_components = escape_or_warn_of_escape_sequences(path_components)
-        escaped_path = escaped_components.join('/')
-        request.path_set(escaped_path)
+        request.path_set(arguments[0])
       end
     end
   end
